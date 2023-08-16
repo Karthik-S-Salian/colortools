@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{% block title %}{% endblock %}</title>
+        <!-- poppins font -->
+        <link href="https://fonts.googleapis.com" rel="preconnect" />
+        <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;700&display=swap"
+            rel="stylesheet" />
+        <!-- **** -->
+        <link href="../css/reset.css" rel="stylesheet" />
+        <link href="../css/global.css" rel="stylesheet" />
+        {% block styles %}{% endblock %}
+    </head>
+
+    <body class="bg-gradient-to-tl from-[#0b1121] from-10% to-blue-900 to-90% bg-fixed text-white">
+        <header>
+            
+        </header>
+        <!-- important remove in production -->
+        {% if DEBUG %} {{ hot_reload.script(url_for('hot-reload')) | safe }} {% endif%}
+        <!-- remove -->
+
+        {% block content %}
+        {% endblock %}
+
+        <footer>
+
+        </footer>
+    </body>
+</html>
