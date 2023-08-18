@@ -24,7 +24,7 @@ templates = Jinja2Templates(directory="templates")
 def getTemplate(path:str,request:Request,params:dict={}):
     return templates.TemplateResponse(path,{"request":request,**params})
 
-app = FastAPI()
+app = FastAPI(debug=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 _debug = True
@@ -39,16 +39,28 @@ if _debug:
     templates.env.globals["DEBUG"] = _debug
     templates.env.globals["hot_reload"] = hot_reload
 
+
+
+def compute_text_color(color):
+    if(len(color)<7):
+        return "white"
+    r,g,b = int(color[1:3],16),int(color[3:5],16),int(color[5:7],16)
+    luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+    if luminance > 0.5:
+        return "black"
+    return "white"
+
 @app.get("/",response_class=HTMLResponse)
 async def home_page(request: Request):
     return getTemplate("index.html", request)
 
-@app.get("/",response_class=HTMLResponse)
+@app.get("/color-gradients",response_class=HTMLResponse)
 async def color_gradients(request: Request):
     with open("data\color-gradients.json") as fh:
         gradients = json.load(fh)
 
     styleList = []
+
 
     for gradient in gradients:
         style = ""
@@ -60,9 +72,19 @@ async def color_gradients(request: Request):
             # else
             #     style = `conic-gradient("from " ${gradient.direction ? + gradient.direction : "0deg"} ,${gradient.colorStop.map(e => e.reduce((p, c) => p + " " + c + "% "))})`
         styleList.append(style)    
-    return getTemplate("gradients.html", request)
+    return getTemplate("gradients.html", request,{"styles":styleList})
 
+
+@app.get("/color-palettes",response_class=HTMLResponse)
 async def color_palettes(request: Request):
     with open("data\color-palettes.json") as fh:
         palettes = json.load(fh)
-    return getTemplate("color-palettes.html", request)
+    return getTemplate("palettes.html", request,{"palettes":palettes,"compute_text_color":compute_text_color})
+
+@app.get("/login",response_class=HTMLResponse)
+async def login_page(request: Request):
+    return getTemplate("login.html", request)
+
+@app.get("/about-us",response_class=HTMLResponse)
+async def about_us_page(request: Request):
+    return getTemplate("about-us.html", request)

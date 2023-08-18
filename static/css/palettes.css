@@ -1,0 +1,37 @@
+/* grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 */
+
+.palettes-container {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+
+.palette {
+    display: flex;
+    flex-direction: row;
+    height: 5rem;
+}
+
+.palette-color {
+    flex-grow: 1;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+}
+
+.palette-color>span {
+    display: none;
+}
+
+.palette-color:hover>span {
+    display: inline;
+}
+
+.palette-color:first-child {
+    border-radius: 5px 0px 0px 5px;
+}
+
+.palette-color:last-child {
+    border-radius: 0px 5px 5px 0px;
+}
