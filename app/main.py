@@ -85,6 +85,11 @@ async def color_palettes(request: Request):
 async def login_page(request: Request):
     return getTemplate("login.html", request)
 
+
+@app.get("/image-converter",response_class=HTMLResponse)
+async def about_us_page(request: Request):
+    return getTemplate("image-converter.html", request)
+
 @app.get("/about-us",response_class=HTMLResponse)
 async def about_us_page(request: Request):
     return getTemplate("about-us.html", request)
