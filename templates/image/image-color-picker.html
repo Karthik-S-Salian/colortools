@@ -1,0 +1,45 @@
+
+
+
+{% extends "base.html" %}
+{% block title %}ColorTools{% endblock title %}
+{% block styles %}
+<link rel="stylesheet" href="/static/css/image/image-color-picker.css" />
+{% endblock styles %}
+
+{% block content %}
+<main>
+    <section>
+        <div id="none">
+            <label for="file-chooser">Choose an image to display</label>
+            <br>
+            <input type="file" id="file-chooser" accept="image/jpeg">
+
+        </div>
+
+    </section>
+
+    <section>
+        <div id="color-container">
+            <span id="color-value"></span>
+            <div id="extra-button-container">
+                <button id="copy-button"></button>
+                <button id="fit-button"></button>
+            </div>
+            
+        </div>
+        <div id="canvas-container">
+            <canvas></canvas>
+        </div>
+    </section>
+
+</main>
+{% endblock content %}
+
+{% block scripts %}
+<script src="/static/js/image-color-picker.js"></script>
+{% endblock scripts %}
+
+
+
+

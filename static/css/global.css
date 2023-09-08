@@ -50,14 +50,14 @@ header{
     position: fixed;
     top: 0;
     left: 0;
-    width: 100vw;
+    width: 100%;
     background: rgba(26, 26, 26, 0.7);
     z-index: 10;
 }
 
 .logo{
     font-family: 'Pacifico', cursive;
-    font-size: 2rem;
+    font-size: 1rem;
 }
 
 header + div{
@@ -71,13 +71,15 @@ header > nav{
     gap:1.5rem;
 }
 
-header .login{
+header .share{
     background-color: rgb(0, 158, 0);
     padding: .3rem 1.5rem;
     border-radius: 20px;
+    font-weight: 600;
+    font-size: large;
 }
 
-header .login:hover{
+header .share:hover{
     scale: 1.05;
 }
 
@@ -191,4 +193,12 @@ footer h3{
 
 footer ul{
     list-style: circle;
+}
+
+/* for desktop only change max to min*/
+@media only screen and (max-width: 900px) {
+    header{
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
 }

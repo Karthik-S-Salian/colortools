@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}PDF to text | ColorTools{% endblock title %}
+{% block styles %}
+<link rel="stylesheet" href="/static/css/docs/pdf-to-text.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+{% endblock styles %}
+
+{% block content %}
+<main>
+
+  <h2>Online PDF Text Extractor</h2>
+  <div class="drag-area" ondrop="" ondragover="return false">
+      <span class="drag-text">Drop pdf file here</span>
+      <button id="browse-button">Browse File</button>
+      <input type="file" id="pdf-input" hidden accept=".pdf">
+  </div>
+
+  <div>
+    <h3>Extracted Text</h3>
+    <div id="text-container"></div>
+  </div>
+</main>
+{% endblock content %}
+{% block scripts %}
+<script src="/static/js/docs/pdf-to-text.js"></script>
+{% endblock scripts %}
