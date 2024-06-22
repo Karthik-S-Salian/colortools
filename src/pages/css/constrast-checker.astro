@@ -1,0 +1,47 @@
+---
+import Layout from "../../layouts/Layout.astro";
+---
+
+<Layout>
+
+    <main>
+        <h2>Contrast Checker</h2>
+        <div>
+            <div class="demo-container" ></div>
+            <div class="control-container">
+                <div>
+                    <div>
+                        <label for="text-color">Text</label>
+                        <input type="color" name="text-color">
+                    </div>
+                    <div>
+                        <label for="bg-color">Background</label>
+                        <input type="color" name="bg-color">
+                    </div>
+                </div>
+                <div>
+                    <h6>Contrast</h6>
+                    <div>
+                        <div class="large-text">
+                            <span class="score">1</span>
+                            <div >
+                                <span>Rating</span>
+                            </div>
+    
+                        </div>
+    
+                        <div>
+                            <span>small text</span>
+                            <span>Rating</span>
+                        </div>
+                        <div>
+                            <span>large text</span>
+                            <span>Rating</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+    </main>
+</Layout>

@@ -1,0 +1,448 @@
+---
+import Layout from "../../layouts/Layout.astro";
+---
+
+<Layout>
+    <main>
+        <section id="file-input-section">
+            <div id="input-button-container">
+                <input type="file" name="file-input" id="file-input" />
+                <button id="pick-image">Browse Image</button>
+            </div>
+            <div id="color-container"></div>
+        </section>
+        <section class="image-container">
+            <img
+                src="https://fallback"
+                alt="please select image"
+                id="display-image"
+                width="100%"
+                draggable="false"
+            />
+            <div id="zoom">
+                <div></div>
+            </div>
+            <canvas></canvas>
+            <div class="drag-area" ondrop="" ondragover="return false">
+                <span class="drag-text">Drop images here</span>
+                <button onclick="document.getElementById('file-input').click()"
+                    >Browse Image</button
+                >
+            </div>
+        </section>
+
+        <section class="palette-section">
+            <h2>Palette</h2>
+            <div>
+                <div id="palette-container"></div>
+                <div></div>
+            </div>
+        </section>
+    </main>
+</Layout>
+
+<style>
+    #none {
+        text-align: center;
+        font-size: larger;
+    }
+
+    #pick-image {
+        padding: 0.5rem 1rem;
+        background-color: greenyellow;
+        color: black;
+        border-radius: 5px;
+    }
+
+    section {
+        width: 100%;
+        background-color: rgba(255, 255, 255, 0.644);
+        border-radius: 8px;
+        padding: 1rem;
+    }
+
+    #display-image {
+        width: 100%;
+        height: fit-content;
+        cursor: crosshair;
+    }
+
+    #file-input-section {
+        display: flex;
+        gap: 1rem;
+    }
+
+    #input-button-container {
+        position: relative;
+        overflow: hidden;
+        display: inline-block;
+    }
+
+    #input-button-container button {
+        background-color: black;
+        color: white;
+        width: fit-content;
+        min-width: 8em;
+    }
+
+    button {
+        border: none;
+        border-radius: 5px;
+        background-color: brown;
+        color: white;
+        padding: 0.5em 1em;
+        font-size: 1.2rem;
+        font-family: inherit;
+        cursor: pointer;
+    }
+
+    button:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    #input-button-container input[type="file"] {
+        font-size: 100px;
+        position: absolute;
+        left: 0;
+        top: 0;
+        opacity: 0;
+        width: 100%;
+        cursor: pointer;
+    }
+
+    #color-container {
+        flex-grow: 1;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        place-content: center;
+        place-items: center;
+    }
+
+    canvas {
+        display: none;
+    }
+
+    .image-container {
+        position: relative;
+    }
+
+    #zoom {
+        position: absolute;
+        border-radius: 50%;
+        width: 100px;
+        height: 100px;
+        visibility: hidden;
+        display: grid;
+        padding: 0;
+        gap: 0;
+        overflow: hidden;
+        border: 1px solid darkslategray;
+        pointer-events: none;
+    }
+
+    .palette-section > {
+        display: flex;
+    }
+</style>
+
+<style>
+        .drag-area {
+        width: 100%;
+        padding: 10vh;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        border: 2px dashed #fff;
+        background: darkcyan;
+        gap: 1rem;
+    }
+    .drag-area.active {
+        border: 2px solid #fff;
+    }
+
+    .drag-area header {
+        font-size: 30px;
+        font-weight: 500;
+    }
+    .drag-area span {
+        font-size: 25px;
+        font-weight: 500;
+        color: #fff;
+    }
+    .drag-area button {
+        padding: 10px 25px;
+        font-size: 20px;
+        font-weight: 500;
+        border: none;
+        outline: none;
+        background: #fff;
+        color: rgb(0, 65, 139);
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.5s ease-in-out;
+    }
+
+    .drag-area button:hover {
+        color: #fff;
+        background: rgb(0, 65, 139);
+    }
+
+    .drag-area.hidden {
+        display: none;
+    }
+
+    .drag-area.block {
+        display: block;
+    }
+
+    .hide {
+        display: none;
+    }
+</style>
+
+<style is:global>
+    #palette-container {
+        display: flex;
+        flex-direction: row;
+        height: 5rem;
+        flex-grow: 1;
+    }
+
+    .palette-color {
+        flex-grow: 1;
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+    }
+
+    .palette-color > span {
+        display: none;
+        width: 0;
+        transition: all 500ms ease-in-out;
+    }
+
+    .palette-color:hover > span {
+        display: inline;
+        width: fit-content;
+    }
+
+    .palette-color:first-child {
+        border-radius: 5px 0px 0px 5px;
+    }
+
+    .palette-color:last-child {
+        border-radius: 0px 5px 5px 0px;
+    }
+</style>
+
+<script>
+    import quantize from "@lib/quantize";
+    import {
+        rgbToGray,
+        flatRGBAArrayToRGBGroupArray,
+        rgbToHex,
+        getTextColor,
+    } from "@lib/colors";
+
+    interface HTMLInputEvent extends Event {
+        target: HTMLInputElement & EventTarget;
+    }
+
+    const canvas = document.querySelector("canvas") as HTMLCanvasElement;
+    const context = canvas.getContext("2d", { willReadFrequently: true })!;
+    const colorContainer = document.getElementById(
+        "color-container",
+    ) as HTMLDivElement;
+
+    const paletteContainer = document.getElementById(
+        "palette-container",
+    ) as HTMLDivElement;
+
+    const displayImage = document.getElementById(
+        "display-image",
+    ) as HTMLImageElement;
+    const fileChooser = document.getElementById(
+        "file-input",
+    ) as HTMLInputElement;
+    const zoom = document.getElementById("zoom") as HTMLDivElement;
+    const imageFallbackElement = document.querySelector(
+        ".drag-area",
+    ) as HTMLDivElement;
+
+    const pixelDivs: HTMLDivElement[] = [];
+
+    const gridSize = 9; //keep it odd
+
+    zoom.innerHTML = "";
+    zoom.style.gridTemplateColumns = `repeat(${gridSize},1fr)`;
+
+    for (let i = 0; i < gridSize * gridSize; i++) {
+        const newDiv = document.createElement("div");
+        newDiv.style.aspectRatio = "1";
+        pixelDivs.push(newDiv);
+        zoom.appendChild(newDiv);
+    }
+
+    pixelDivs[
+        Math.floor(gridSize / 2) * gridSize + Math.floor(gridSize / 2)
+    ].style.border = "1px";
+    pixelDivs[
+        Math.floor(gridSize / 2) * gridSize + Math.floor(gridSize / 2)
+    ].style.borderStyle = "solid";
+    pixelDivs[
+        Math.floor(gridSize / 2) * gridSize + Math.floor(gridSize / 2)
+    ].style.zIndex = "2";
+
+    fileChooser.addEventListener("change", (event) =>
+        processImage(event as HTMLInputEvent),
+    );
+
+    function processImage(event: HTMLInputEvent) {
+        if (!event.target?.files?.length) return;
+
+        const file = event.target.files[0];
+
+        if (file) {
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                if (e?.target?.result) {
+                    displayImage.src = e.target.result as string;
+                }
+                displayImage.onload = function () {
+                    displayImage.classList.remove("hide");
+                    imageFallbackElement.classList.add("hide");
+                    addColorPicker();
+                    displayImage.onmousemove = updateColorOnMove;
+                    displayImage.style.cursor = "crosshair";
+                    zoom.style.top = `${displayImage.width / 2}px`;
+                    zoom.style.left = `${displayImage.height / 2}px`;
+                    getPalette();
+                };
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    displayImage.onmouseup = () => {
+        displayImage.onmousemove = () => {};
+        displayImage.style.cursor = "default";
+    };
+
+    displayImage.onmousedown = () => {
+        displayImage.onmousemove = updateColorOnMove;
+        displayImage.style.cursor = "crosshair";
+    };
+
+    displayImage.onmouseenter = () => {
+        zoom.style.visibility = "visible";
+    };
+
+    displayImage.onmouseleave = () => {
+        zoom.style.visibility = "hidden";
+    };
+
+    function updateColorOnMove(event: MouseEvent) {
+        const x = event.offsetX;
+        const y = event.offsetY;
+
+        zoom.style.top = `${y + 20}px`;
+        zoom.style.left = `${x + 20}px`;
+
+        const [r, g, b, _] = context.getImageData(x, y, 1, 1).data;
+
+        const offset = Math.floor(gridSize / 2);
+        const data = context.getImageData(
+            x - offset,
+            y - offset,
+            gridSize,
+            gridSize,
+        ).data;
+
+        for (let i = 0; i < gridSize * gridSize; i++) {
+            const j = i * 4;
+            const [r, g, b, a] = [
+                data[j],
+                data[j + 1],
+                data[j + 2],
+                data[j + 3],
+            ];
+
+            pixelDivs[i].style.backgroundColor = `rgba(${r},${g},${b},${a})`;
+            pixelDivs[i].style.outline = `.5px solid ${
+                rgbToGray(r, g, b) ? "rgb(10 10 10)" : "rgb(255 255 255)"
+            }`;
+            pixelDivs[i].style.borderColor = `${
+                rgbToGray(r, g, b) ? "rgb(10 10 10)" : "rgb(255 255 255)"
+            }`;
+        }
+        colorContainer.innerHTML = `
+                <span>${r},${g},${b}</span>
+                <span>${rgbToHex(r, g, b)}</span>
+            `;
+        colorContainer.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+        colorContainer.style.color = getTextColor(r, g, b);
+    }
+
+    function addColorPicker() {
+        canvas.width = displayImage.width;
+        canvas.height = displayImage.height;
+
+        context.drawImage(
+            displayImage,
+            0,
+            0,
+            displayImage.width,
+            displayImage.height,
+        );
+    }
+
+    function getPalette() {
+        const data = context.getImageData(
+            0,
+            0,
+            canvas.width,
+            canvas.height,
+        ).data;
+        const rgbArray = flatRGBAArrayToRGBGroupArray(data);
+        const colorMap = quantize(rgbArray, 10);
+        if (colorMap == false) return;
+        displayPalette(colorMap.palette());
+    }
+
+    function displayPalette(palette: number[][]) {
+        palette = palette.sort((a, b) => {
+            return a[0] * 299 + a[1] * 587 + a[2] * 114 <
+                b[0] * 299 + b[1] * 587 + b[2] * 114
+                ? 1
+                : -1;
+        });
+        paletteContainer.innerHTML = palette
+            .map((color) => {
+                const [r, g, b] = color;
+                return `
+                <span
+                    style = "background-color:rgb(${r},${g},${b});color:${getTextColor(
+                        r,
+                        g,
+                        b,
+                    )}"
+                    class="palette-color"><span>${color}</span>    
+                </span>
+            `;
+            })
+            .join("");
+    }
+
+
+    displayImage.onerror = replaceImageFallback;
+
+    function replaceImageFallback() {
+        displayImage.classList.add("hide");
+        imageFallbackElement.classList.remove("hide");
+        console.log("called")
+    }
+</script>

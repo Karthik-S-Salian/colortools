@@ -1,0 +1,221 @@
+---
+import Layout from "../../layouts/Layout.astro";
+---
+
+<script
+    src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"
+    is:inline></script>
+
+<Layout>
+    <main>
+        <h2>Online PDF Text Extractor</h2>
+        <div class="drag-area" ondrop="" ondragover="return false">
+            <span class="drag-text">Drop pdf file here</span>
+            <button id="browse-button">Browse File</button>
+            <input type="file" id="pdf-input" hidden accept=".pdf" />
+        </div>
+
+        <div>
+            <h3>Extracted Text</h3>
+            <div id="text-container"></div>
+        </div>
+    </main>
+</Layout>
+
+<style>
+    .drag-area {
+        width: 100%;
+        padding: 10vh;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        border: 2px dashed #fff;
+        background: darkcyan;
+        gap: 1rem;
+    }
+
+    .drag-area.active {
+        border: 2px solid #fff;
+    }
+
+    .drag-area header {
+        font-size: 30px;
+        font-weight: 500;
+    }
+
+    .drag-area span {
+        font-size: 25px;
+        font-weight: 500;
+        color: #fff;
+    }
+
+    .drag-area button {
+        padding: 10px 25px;
+        font-size: 20px;
+        font-weight: 500;
+        border: none;
+        outline: none;
+        background: #fff;
+        color: rgb(0, 65, 139);
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.5s ease-in-out;
+    }
+
+    .drag-area button:hover {
+        color: #fff;
+        background: rgb(0, 65, 139);
+    }
+
+    .drag-area.hidden {
+        display: none;
+    }
+
+    .drag-area.block {
+        display: block;
+    }
+
+    svg {
+        cursor: pointer;
+    }
+
+    svg:hover {
+        cursor: pointer;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    #text-container {
+        width: 100%;
+        max-height: 400px;
+        min-height: 0;
+        overflow-y: scroll;
+        border: 2px solid white;
+        border-radius: 4px;
+        padding: 1rem;
+        white-space: pre-wrap;
+    }
+
+    h3 {
+        margin: 1rem 0;
+    }
+</style>
+
+<script is:inline>
+    // const dropArea = document.querySelector(".drag-area") as HTMLDivElement;
+    // const dragText = dropArea.querySelector(".drag-text") as HTMLSpanElement;
+    // const input = dropArea.querySelector("#pdf-input") as HTMLInputElement;
+    // const browseButton = dropArea.querySelector("#browse-button") as HTMLButtonElement;
+    // const textContainer = document.getElementById("text-container") as HTMLDivElement;1
+
+    const dropArea = document.querySelector(".drag-area");
+    const dragText = dropArea.querySelector(".drag-text");
+    const input = dropArea.querySelector("#pdf-input");
+    const browseButton = dropArea.querySelector("#browse-button");
+    const textContainer = document.getElementById("text-container");
+
+    const states = {
+        READING: "READING",
+        CONVERTING: "CONVERTING",
+        READY: "READY",
+        DOWNLOADED: "DOWNLOADED",
+    };
+
+    browseButton.addEventListener("click", () => input.click());
+
+    input.addEventListener("change", (event) => {
+        event.preventDefault();
+        dropArea.classList.add("active");
+        dragleave();
+        if (input.files) {
+            const file = input.files[0];
+            extractPDF(file);
+        }
+    });
+
+    function bytesSizetoReadable(size) {
+        //converts size in bytes to kb mb or gb
+        const scale = { 0: "bytes", 1: "kb", 2: "mb" };
+        let prvs_size = 0;
+        let count = -1;
+        while (Math.floor(size) > 0) {
+            prvs_size = size;
+            size = size / 1024;
+            count += 1;
+        }
+        return prvs_size.toFixed(2) + scale[count];
+    }
+
+    function extractPDF(file) {
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = async function (event) {
+                const typedarray = new Uint8Array(event.target.result);
+                const pdf = await pdfjsLib.getDocument(typedarray).promise;
+
+                let text = "";
+                for (
+                    let pageNumber = 1;
+                    pageNumber <= pdf.numPages;
+                    pageNumber++
+                ) {
+                    const page = await pdf.getPage(pageNumber);
+                    const pageText = await page.getTextContent();
+                    pageText.items.forEach((item) => {
+                        text += item.str + "\n";
+                    });
+                }
+                textContainer.textContent = beautifyText(text);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+    }
+
+    function beautifyText(text) {
+        let purified = "";
+        let count = 0;
+        let replaceChar = " ";
+        for (const char of text) {
+            if (char == "\n") {
+                count++;
+                replaceChar = "\n";
+            } else if (char == " ") {
+                count++;
+            } else {
+                if (count > 0) {
+                    purified += replaceChar;
+                    count = 0;
+                    replaceChar = " ";
+                }
+                purified += char;
+            }
+        }
+        return purified.trim();
+    }
+
+    dropArea.addEventListener("dragover", (event) => {
+        event.preventDefault();
+        dropArea.classList.add("active");
+        dragText.textContent = "Release to Upload File";
+    });
+
+    function dragleave() {
+        dropArea.classList.remove("active");
+        dragText.textContent = "Drag & Drop to Upload File";
+    }
+
+    dropArea.addEventListener("dragleave", dragleave);
+
+    dropArea.addEventListener("drop", (event) => {
+        event.preventDefault();
+        if (event.dataTransfer) {
+            onFilesInput(event.dataTransfer.files);
+        }
+    });
+
+    function onFilesInput(param) {}
+</script>

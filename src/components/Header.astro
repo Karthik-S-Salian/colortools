@@ -1,0 +1,105 @@
+<header>
+	<div class="logo">
+		<h1><a href="/">🔥FireTools🔥</a></h1>
+	</div>
+	<nav>
+		<a href="/">HOME</a>
+		<div class="dropdown">
+			<span>TOOLS</span>
+			<div class="dropdown-content">
+				<a href="/css/color-gradients">Color Gradients</a>
+				<a href="/css/color-palettes">Color Palettes</a>
+				<a href="/image/image-converter">Image Converter</a>
+				<a href="/docs/pdf-to-text">PDF to text</a>
+			</div>
+		</div>
+		<a href="/about-us">ABOUT US</a>
+		<button class="share"><a href="/login">Share</a></button>
+	</nav>
+</header>
+
+
+
+<style>
+    header {
+		display: flex;
+		height: 60px;
+		align-items: center;
+		justify-content: space-between;
+		padding-left: 4rem;
+		padding-right: 4rem;
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		background: rgba(26, 26, 26, 0.7);
+		z-index: 10;
+	}
+
+	.logo {
+		font-family: "Pacifico", cursive;
+		font-size: 1rem;
+	}
+
+	header > nav {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1.5rem;
+	}
+
+	header .share {
+		background-color: rgb(0, 158, 0);
+		padding: 0.3rem 1.5rem;
+		border-radius: 20px;
+		font-weight: 600;
+		font-size: large;
+	}
+
+	header .share:hover {
+		scale: 1.05;
+	}
+
+	.dropdown {
+		position: relative;
+		display: inline-block;
+		cursor: pointer;
+	}
+
+	.dropdown-content {
+		display: none;
+		position: absolute;
+		background-color: #f1f1f1;
+		min-width: 160px;
+		box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+		z-index: 1;
+	}
+
+	.dropdown-content > * {
+		color: black;
+		padding: 0.75rem 1rem;
+		display: block;
+	}
+
+	.dropdown-content a:hover {
+		background-color: #ddd;
+	}
+
+	.dropdown:hover .dropdown-content {
+		display: block;
+	}
+
+	h2 {
+		font-size: 1.5rem;
+		margin: 2rem 0;
+	}
+
+
+    	/* for desktop only change max to min*/
+	@media only screen and (max-width: 900px) {
+		header {
+			padding-left: 1rem;
+			padding-right: 1rem;
+		}
+	}
+</style>
